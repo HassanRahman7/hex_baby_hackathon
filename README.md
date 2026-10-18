@@ -35,6 +35,11 @@ npm run preview  # serve the production build
 - Desktop desk scene (≥768px): wall mobile (top-left), lullaby box (left desk), Pip portrait
   (center anchor), dream lantern (right desk) — organic float/sway, all absolutely positioned
   over a desk surface occupying the bottom 40%.
+- **Bounded workspace**: objects anchor to a centered `max-w-5xl` container (Pip via
+  `left-1/2 -translate-x-1/2`, the box/lantern via fixed pixel offsets from the container edges),
+  never to the raw screen — so ultra-wide monitors keep the nightstand clustered at center.
+  The desk surface stays full-bleed (`w-full`) on the outermost wrapper, with its felt-mat
+  working area aligned to the same centered 5xl lane.
 - Mobile (<768px): "Responsive Chaos Mode" — 2×2 polaroid scrapbook grid, 166×166px tap targets
   (safety threshold is 64px), plus a 4-across variant for very short landscape phones.
 - Day/Night physical pull-cord in the header toggles Tailwind's `dark` class on `<html>`.

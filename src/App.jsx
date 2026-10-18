@@ -101,124 +101,164 @@ export default function App() {
     ? 'Dream Lantern glowing warm in night...'
     : 'Cozy Daytime Sunbeams in room...'
 
+  /* h-[100dvh] makes the root's height definite so the h-full chain
+     (workspace -> main) resolves; min-h-[100dvh] keeps it a hard floor. */
   return (
-    <div className="h-[100dvh] w-full overflow-hidden relative bg-day dark:bg-night text-wood dark:text-softcream transition-colors duration-700">
+    <div className="w-full min-h-[100dvh] h-[100dvh] overflow-hidden flex justify-center relative bg-day dark:bg-night text-wood dark:text-softcream transition-colors duration-700">
       <Cursor />
 
-      <main className="h-[100dvh] w-full overflow-hidden relative flex flex-col justify-between transition-colors duration-700 retro-grid-bg">
-        {/* ---------------- TOP RETRO BANNER & CONTROLS ---------------- */}
-        <header className="relative z-30 w-full px-4 pt-3 pb-2 flex items-center justify-between gap-3">
-          {/* Brand badge */}
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="px-3 py-1 bg-day dark:bg-[#25151c] border-2 border-berry shadow-retro-sm rounded-lg flex items-center gap-2">
-              <span className="inline-block w-3 h-3 rounded-full bg-blush animate-ping" />
-              <span className="font-fredoka text-sm md:text-base font-bold text-berry dark:text-sun tracking-wide whitespace-nowrap">
-                haX.baby{' '}
-                <span className="text-xs font-mono font-normal">
-                  :: pip's nightstand
+      {/* --------------------------------------------------------------
+          FULL-BLEED DESK SURFACE — spans w-full on the outermost wrapper.
+          Its visual "working area" (felt mat + Easter-egg star) is a
+          centered max-w-5xl lane that lines up with the object workspace
+          below, so the desk never stretches wider than the nightstand.
+      -------------------------------------------------------------- */}
+      <div className="absolute bottom-0 left-0 w-full h-[40%] bg-wood/10 dark:bg-white/5 border-t-4 border-berry transition-colors duration-700 z-0">
+        {/* Wood-grain retrace pattern (full-bleed) */}
+        <div className="absolute inset-0 opacity-15 bg-[repeating-linear-gradient(45deg,#5c4033_0,#5c4033_2px,transparent_0,transparent_16px)] dark:bg-[repeating-linear-gradient(45deg,#a34063_0,#a34063_2px,transparent_0,transparent_16px)]" />
+
+        {/* Working area: aligned with the centered 5xl desk boundary */}
+        <div className="relative w-full max-w-5xl h-full mx-auto">
+          {/* Desk felt mat */}
+          <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-[86%] h-full border-x-4 border-t-4 border-berry/40 rounded-t-3xl bg-[#f7ebe0]/50 dark:bg-[#25151c]/60 backdrop-blur-[2px]" />
+
+          {/* EASTER EGG: an unlabelled star cracked into the desk grain.
+              Clicking it fires brand-colored confetti. */}
+          <button
+            type="button"
+            onClick={fireEasterEgg}
+            title=""
+            aria-label="✦ a curious little star scratched into the desk"
+            className="interactive-obj absolute left-[36%] top-[42%] text-berry dark:text-sun hover:scale-125 transition-transform text-xl anim-twinkle z-20"
+          >
+            ✦
+          </button>
+        </div>
+      </div>
+
+      {/* --------------------------------------------------------------
+          BOUNDED WORKSPACE — the physical desk boundary (max-w-5xl).
+          All interactive objects anchor here instead of to the screen
+          edges, so ultra-wide monitors keep the nightstand clustered.
+      -------------------------------------------------------------- */}
+      <div className="relative w-full max-w-5xl h-full mx-auto">
+        {/* Pip, Lullaby Box, Lantern & Sketchbook — absolute vs this box */}
+        <DeskScene onOpen={openModal} />
+
+        <main className="relative w-full h-full flex flex-col overflow-hidden transition-colors duration-700 retro-grid-bg">
+          {/* ---------------- TOP RETRO BANNER & CONTROLS ---------------- */}
+          <header className="relative z-30 shrink-0 w-full px-4 pt-3 pb-2 flex items-center gap-3">
+            {/* Brand badge */}
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="px-3 py-1 bg-day dark:bg-[#25151c] border-2 border-berry shadow-retro-sm rounded-lg flex items-center gap-2">
+                <span className="inline-block w-3 h-3 rounded-full bg-blush animate-ping" />
+                <span className="font-fredoka text-sm md:text-base font-bold text-berry dark:text-sun tracking-wide whitespace-nowrap">
+                  haX.baby{' '}
+                  <span className="text-xs font-mono font-normal">
+                    :: pip's nightstand
+                  </span>
                 </span>
-              </span>
-              <span className="text-[10px] bg-berry text-white px-1.5 py-0.5 rounded font-mono font-bold uppercase hidden sm:inline-block">
-                Track 1·C
+                <span className="text-[10px] bg-berry text-white px-1.5 py-0.5 rounded font-mono font-bold uppercase hidden sm:inline-block">
+                  Track 1·C
+                </span>
+              </div>
+            </div>
+
+            {/* Status pill — fills the middle lane and centers itself */}
+            <div className="hidden md:flex flex-1 min-w-0 items-center justify-center gap-2 px-3 py-1 bg-white/70 dark:bg-black/40 backdrop-blur-sm border-2 border-berry/40 rounded-full text-xs font-mono">
+              <span className="text-berry font-bold dark:text-sun">● STATUS:</span>
+              <span id="room-status-text" className="text-wood dark:text-sun/90 whitespace-nowrap">
+                {statusText}
               </span>
             </div>
-          </div>
 
-          {/* Status pill */}
-          <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-white/70 dark:bg-black/40 backdrop-blur-sm border-2 border-berry/40 rounded-full text-xs font-mono">
-            <span className="text-berry font-bold dark:text-sun">● STATUS:</span>
-            <span id="room-status-text" className="text-wood dark:text-sun/90">
-              {statusText}
-            </span>
-          </div>
-
-          {/* Day/Night literal pull-cord switch */}
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              id="theme-toggle"
-              onClick={toggleTheme}
-              aria-label={`${dark ? '\u{1F319} NIGHT' : '\u2600\uFE0F DAY'} \u2014 toggle the light switch`}
-              aria-pressed={dark}
-              className="pull-chain group flex flex-col items-center"
-            >
-              <span className="block w-6 h-3 bg-wood dark:bg-sun/80 border-2 border-berry rounded-t-sm shadow-sm" />
-              <span className="block w-1 h-6 bg-repeat-y bg-[radial-gradient(#a34063_2px,transparent_2px)] bg-[length:4px_6px] dark:bg-[radial-gradient(#ffd166_2px,transparent_2px)]" />
-              <span className="px-2 py-1 bg-sun dark:bg-berry border-2 border-berry rounded-full shadow-retro-sm flex items-center gap-1 group-hover:scale-110 transition-transform">
-                <span className="text-xs" aria-hidden="true">
-                  {dark ? '🌙' : '☀️'}
+            {/* Day/Night literal pull-cord switch */}
+            <div className="flex items-center gap-3 ml-auto md:ml-0">
+              <button
+                type="button"
+                id="theme-toggle"
+                onClick={toggleTheme}
+                aria-label={`${dark ? '\u{1F319} NIGHT' : '\u2600\uFE0F DAY'} \u2014 toggle the light switch`}
+                aria-pressed={dark}
+                className="pull-chain group flex flex-col items-center"
+              >
+                <span className="block w-6 h-3 bg-wood dark:bg-sun/80 border-2 border-berry rounded-t-sm shadow-sm" />
+                <span className="block w-1 h-6 bg-repeat-y bg-[radial-gradient(#a34063_2px,transparent_2px)] bg-[length:4px_6px] dark:bg-[radial-gradient(#ffd166_2px,transparent_2px)]" />
+                <span className="px-2 py-1 bg-sun dark:bg-berry border-2 border-berry rounded-full shadow-retro-sm flex items-center gap-1 group-hover:scale-110 transition-transform">
+                  <span className="text-xs" aria-hidden="true">
+                    {dark ? '🌙' : '☀️'}
+                  </span>
+                  <span className="text-[10px] font-fredoka font-bold text-wood dark:text-white">
+                    {dark ? 'NIGHT' : 'DAY'}
+                  </span>
                 </span>
-                <span className="text-[10px] font-fredoka font-bold text-wood dark:text-white">
-                  {dark ? 'NIGHT' : 'DAY'}
+              </button>
+            </div>
+          </header>
+
+          {/* Night-sky sparkles (Night Mode only — hidden in Day so the cream
+              background keeps full text contrast) */}
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 pointer-events-none z-0 overflow-hidden hidden dark:block"
+          >
+            <div className="absolute top-12 left-10 text-sun anim-pulse-star text-lg">✦</div>
+            <div className="absolute top-28 left-[35%] text-blush anim-pulse-star text-sm" style={{ animationDelay: '1.2s' }}>★</div>
+            <div className="absolute top-20 right-20 text-sun anim-pulse-star text-xl" style={{ animationDelay: '0.6s' }}>✦</div>
+            <div className="absolute top-44 right-[30%] text-white/80 anim-pulse-star text-xs" style={{ animationDelay: '1.8s' }}>✧</div>
+            <div className="absolute top-36 left-4 text-sun/70 anim-pulse-star text-sm" style={{ animationDelay: '2.1s' }}>★</div>
+          </div>
+
+          {/* ---------------- THE NIGHTSTAND (mobile) ---------------- */}
+          <ScrapbookWall onOpen={openModal} onEasterEgg={fireEasterEgg} />
+
+          {/* ---------------- FOOTER / STATUS BAR ---------------- */}
+          <footer className="shrink-0 mt-auto w-full px-4 py-2 bg-white/80 dark:bg-black/40 border-t-2 border-berry/30 flex flex-wrap items-center justify-center gap-3 text-[11px] font-mono z-30">
+            <div className="flex items-center gap-2">
+              <span className="text-berry font-bold dark:text-sun">MODE:</span>
+              <span className="font-fredoka text-xs text-wood dark:text-sun font-semibold">
+                Track 1 / Concept C
+              </span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <span className="text-wood/90 dark:text-softcream/90 hidden sm:inline">
+                Sound powered by Web Audio API
+              </span>
+              <button
+                type="button"
+                id="quick-lore-btn"
+                onClick={() => openModal('help')}
+                className="text-berry underline font-bold hover:text-blush dark:text-sun"
+              >
+                Instructions
+              </button>
+
+              {/* Global mute toggle — pinned to the bottom-right corner */}
+              <button
+                type="button"
+                id="sound-toggle-btn"
+                onClick={toggleSound}
+                aria-label={`${soundOn ? 'SFX: ON' : 'SFX: MUTED'} \u2014 toggle sound effects`}
+                aria-pressed={!soundOn}
+                title="Toggle Web Audio SFX"
+                className="min-h-8 px-2.5 py-1.5 bg-day dark:bg-[#25151c] border-2 border-berry shadow-retro-sm rounded-lg flex items-center gap-1.5 text-xs font-bold text-berry dark:text-sun hover:scale-105 active:translate-y-0.5 transition-transform"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  {soundOn ? (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                  ) : (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+                  )}
+                </svg>
+                <span className="font-mono text-[11px]">
+                  {soundOn ? 'SFX: ON' : 'SFX: MUTED'}
                 </span>
-              </span>
-            </button>
-          </div>
-        </header>
-
-        {/* Night-sky sparkles (Night Mode only — hidden in Day so the cream
-            background keeps full text contrast) */}
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 pointer-events-none z-0 overflow-hidden hidden dark:block"
-        >
-          <div className="absolute top-12 left-10 text-sun anim-pulse-star text-lg">✦</div>
-          <div className="absolute top-28 left-[35%] text-blush anim-pulse-star text-sm" style={{ animationDelay: '1.2s' }}>★</div>
-          <div className="absolute top-20 right-20 text-sun anim-pulse-star text-xl" style={{ animationDelay: '0.6s' }}>✦</div>
-          <div className="absolute top-44 right-[30%] text-white/80 anim-pulse-star text-xs" style={{ animationDelay: '1.8s' }}>✧</div>
-          <div className="absolute top-36 left-4 text-sun/70 anim-pulse-star text-sm" style={{ animationDelay: '2.1s' }}>★</div>
-        </div>
-
-        {/* ---------------- THE NIGHTSTAND ---------------- */}
-        <DeskScene onOpen={openModal} onEasterEgg={fireEasterEgg} />
-        <ScrapbookWall onOpen={openModal} onEasterEgg={fireEasterEgg} />
-
-        {/* ---------------- FOOTER / STATUS BAR ---------------- */}
-        <footer className="w-full px-4 py-2 bg-white/80 dark:bg-black/40 border-t-2 border-berry/30 flex items-center justify-between gap-3 text-[11px] font-mono z-30">
-          <div className="flex items-center gap-2">
-            <span className="text-berry font-bold dark:text-sun">MODE:</span>
-            <span className="font-fredoka text-xs text-wood dark:text-sun font-semibold">
-              Track 1 / Concept C
-            </span>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="text-wood/90 dark:text-softcream/90 hidden sm:inline">
-              Sound powered by Web Audio API
-            </span>
-            <button
-              type="button"
-              id="quick-lore-btn"
-              onClick={() => openModal('help')}
-              className="text-berry underline font-bold hover:text-blush dark:text-sun"
-            >
-              Instructions
-            </button>
-
-            {/* Global mute toggle — pinned to the bottom-right corner */}
-            <button
-              type="button"
-              id="sound-toggle-btn"
-              onClick={toggleSound}
-              aria-label={`${soundOn ? 'SFX: ON' : 'SFX: MUTED'} \u2014 toggle sound effects`}
-              aria-pressed={!soundOn}
-              title="Toggle Web Audio SFX"
-              className="min-h-8 px-2.5 py-1.5 bg-day dark:bg-[#25151c] border-2 border-berry shadow-retro-sm rounded-lg flex items-center gap-1.5 text-xs font-bold text-berry dark:text-sun hover:scale-105 active:translate-y-0.5 transition-transform"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                {soundOn ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
-                )}
-              </svg>
-              <span className="font-mono text-[11px]">
-                {soundOn ? 'SFX: ON' : 'SFX: MUTED'}
-              </span>
-            </button>
-          </div>
-        </footer>
-      </main>
+              </button>
+            </div>
+          </footer>
+        </main>
+      </div>
 
       {/* ---------------- MODALS ---------------- */}
       {MODALS.map(({ id, icon, title, footer, Content, size }) => (

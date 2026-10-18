@@ -2,24 +2,29 @@ import { IMG, IMG_DIMS } from '../lib/assets.js'
 
 /**
  * Desktop / tablet isometric nightstand (>= 768px).
- * Strictly 100dvh, zero-scroll: four organic objects sitting on a desk that
- * occupies the bottom 40% of the viewport (design.md §2 and §3).
+ *
+ * Every object is absolutely positioned against the bounded workspace
+ * (`relative w-full max-w-5xl h-full mx-auto` in App.jsx) — never against
+ * the raw screen — so the nightstand stays clustered at center no matter how wide
+ * the monitor is. Objects use fixed pixel offsets from the container edges
+ * (left-8 / right-8 …) plus a horizontally centered Pip anchor.
+ *
+ * Strictly 100dvh, zero-scroll: the desk itself occupies the bottom 40% of
+ * the viewport (design.md §2 and §3).
  */
-export default function DeskScene({ onOpen, onEasterEgg }) {
+export default function DeskScene({ onOpen }) {
   return (
-    <div
-      id="desktop-room"
-      className="hidden md:flex flex-1 w-full h-full relative items-center justify-center overflow-hidden z-10"
-    >
-      {/* ---------------------------------------------- */}
-      {/* Hanging Wall Mobile & Sketchbook (top-left wall) */}
-      {/* ---------------------------------------------- */}
+    <div id="desktop-room" className="hidden md:block absolute inset-0 z-20">
       <div className="absolute inset-0 room-objects">
+        {/* ---------------------------------------------- */}
+        {/* Hanging Wall Mobile & Sketchbook (top-left wall) */}
+        {/* top-28 clears the retro header bar              */}
+        {/* ---------------------------------------------- */}
         <button
           type="button"
           onClick={() => onOpen('story')}
           title="Pip's Celestial Mobile &amp; Dream Logbook"
-          className="anim-sway interactive-obj group absolute top-6 left-12 z-20"
+          className="anim-sway interactive-obj group absolute top-28 left-8 lg:left-12 z-20"
         >
           <span className="relative flex flex-col items-center">
             <img
@@ -39,7 +44,7 @@ export default function DeskScene({ onOpen, onEasterEgg }) {
         {/* ---------------------------------------------- */}
         {/* Cozy wall picture frame (pure decoration)       */}
         {/* ---------------------------------------------- */}
-        <div className="absolute top-6 right-16 z-10 hidden lg:block pointer-events-none">
+        <div className="absolute top-28 right-8 lg:right-12 z-10 hidden lg:block pointer-events-none">
           <div className="w-32 h-24 border-4 border-berry bg-[#ffe8d6] dark:bg-[#0f080c] shadow-retro-sm rounded-lg relative overflow-hidden flex flex-col items-center justify-center">
             <div className="text-[10px] font-mono text-berry dark:text-sun/70 font-bold mb-1">
               HAX COTTAGE
@@ -56,12 +61,13 @@ export default function DeskScene({ onOpen, onEasterEgg }) {
 
         {/* ---------------------------------------------- */}
         {/* LEFT DESK: The vintage Lullaby Box (Project 1)  */}
+        {/* Fixed pixel offset from the container's left edge */}
         {/* ---------------------------------------------- */}
         <button
           type="button"
           onClick={() => onOpen('lullaby')}
           title="Pip's Lullaby Box (Click to open Project 1)"
-          className="interactive-obj group absolute bottom-[10%] left-[8%] lg:left-[14%] z-20"
+          className="interactive-obj group absolute bottom-[10%] left-8 lg:left-12 z-20"
         >
           <span className="relative flex flex-col items-center">
             <span className="group-hover:scale-105 transition-transform duration-300 inline-block">
@@ -81,7 +87,8 @@ export default function DeskScene({ onOpen, onEasterEgg }) {
         </button>
 
         {/* ---------------------------------------------- */}
-        {/* CENTER ANCHOR: Pip (floating above the desk)    */}
+        {/* CENTER ANCHOR: Pip (horizontally centered on the */}
+        {/* container, never on the raw screen)              */}
         {/* ---------------------------------------------- */}
         <button
           type="button"
@@ -110,13 +117,14 @@ export default function DeskScene({ onOpen, onEasterEgg }) {
         </button>
 
         {/* ---------------------------------------------- */}
-        {/* RIGHT DESK: Pip's Dream Lantern (Project 2)     */}
+        {/* RIGHT DESK: Pip's Dream Lantern (Project 2)      */}
+        {/* Fixed pixel offset from the container's right edge */}
         {/* ---------------------------------------------- */}
         <button
           type="button"
           onClick={() => onOpen('lantern')}
           title="Pip's Dream Lantern (Click for Project 2)"
-          className="interactive-obj group absolute bottom-[10%] right-[8%] lg:right-[14%] z-20"
+          className="interactive-obj group absolute bottom-[10%] right-8 lg:right-12 z-20"
         >
           <span className="relative flex flex-col items-center">
             <span className="group-hover:scale-105 transition-transform duration-300 inline-block">
@@ -133,28 +141,6 @@ export default function DeskScene({ onOpen, onEasterEgg }) {
               <span>PROJECT 2: NIGHTLIGHT</span>
             </span>
           </span>
-        </button>
-      </div>
-
-      {/* ---------------------------------------------- */}
-      {/* THE DESK SURFACE (bottom 40% anchor)            */}
-      {/* ---------------------------------------------- */}
-      <div className="absolute bottom-0 w-full h-[40%] bg-wood/10 dark:bg-white/5 border-t-4 border-berry flex items-center justify-center transition-colors duration-700 z-10">
-        {/* Wood-grain retrace pattern */}
-        <div className="absolute inset-0 opacity-15 bg-[repeating-linear-gradient(45deg,#5c4033_0,#5c4033_2px,transparent_0,transparent_16px)] dark:bg-[repeating-linear-gradient(45deg,#a34063_0,#a34063_2px,transparent_0,transparent_16px)]" />
-        {/* Desk felt mat */}
-        <div className="absolute -top-6 w-[86%] max-w-5xl h-full border-x-4 border-t-4 border-berry/40 rounded-t-3xl bg-[#f7ebe0]/50 dark:bg-[#25151c]/60 backdrop-blur-[2px]" />
-
-        {/* EASTER EGG: an unlabelled star cracked into the desk grain.
-            Clicking it fires brand-colored confetti. */}
-        <button
-          type="button"
-          onClick={onEasterEgg}
-          title=""
-          aria-label="✦ a curious little star scratched into the desk"
-          className="interactive-obj absolute left-[36%] top-[42%] text-berry dark:text-sun hover:scale-125 transition-transform text-xl anim-twinkle z-20"
-        >
-          ✦
         </button>
       </div>
     </div>
