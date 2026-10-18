@@ -15,3 +15,5 @@ Thumbs.db
 
 # Secrets (Stitch API key lives here)
 .secrets/
+design.md
+PRD.md
