@@ -1,0 +1,917 @@
+<!DOCTYPE html><html lang="en" class="light"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>The Interactive Nightstand · Pip &amp; haX.baby</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            day: '#fff8f1',
+            night: '#1a1014',
+            wood: '#5c4033',
+            berry: '#a34063',
+            sun: '#ffd166',
+            blush: '#ff7597',
+            softcream: '#fff2df'
+          },
+          fontFamily: {
+            fredoka: ['Fredoka', 'Comic Neue', 'cursive', 'sans-serif'],
+            mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
+          },
+          boxShadow: {
+            'retro': '6px 6px 0px #a34063',
+            'retro-lg': '8px 8px 0px #a34063',
+            'retro-sm': '3px 3px 0px #a34063',
+            'glow-berry': '0 0 24px 6px rgba(163, 64, 99, 0.75)',
+            'glow-gold': '0 0 25px 8px rgba(255, 209, 102, 0.65)'
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&amp;family=Space+Mono:ital,wght@0,400;0,700;1,400&amp;display=swap" rel="stylesheet">
+  <style>
+    /* Global Typography & Reset */
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100dvh;
+      width: 100vw;
+      overflow: hidden;
+      font-family: 'Space Mono', monospace;
+    }
+    .font-fredoka {
+      font-family: 'Fredoka', cursive, sans-serif;
+    }
+    
+    /* Custom Cursor */
+    #cursor-dot {
+      pointer-events: none;
+      position: fixed;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background-color: #a34063;
+      transform: translate(-50%, -50%);
+      transition: width 0.18s ease, height 0.18s ease, border-radius 0.18s ease, background-color 0.18s ease;
+      z-index: 9999;
+      box-shadow: 0 0 8px rgba(163, 64, 99, 0.6);
+    }
+    #cursor-dot.cursor-hover {
+      width: 28px;
+      height: 28px;
+      background-color: #ffd166;
+      border: 3px solid #a34063;
+      clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+      border-radius: 0;
+    }
+    @media (pointer: coarse) {
+      #cursor-dot { display: none !important; }
+    }
+
+    /* Keyframe Animations */
+    @keyframes pipFloat {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-14px) rotate(1.5deg); }
+    }
+    .anim-pip-float {
+      animation: pipFloat 3.8s ease-in-out infinite;
+    }
+
+    @keyframes rotateWiggle {
+      0% { transform: rotate(0deg) scale(1.04); }
+      25% { transform: rotate(-8deg) scale(1.06); }
+      75% { transform: rotate(8deg) scale(1.06); }
+      100% { transform: rotate(0deg) scale(1.04); }
+    }
+    .group:hover .anim-wiggle-on-hover,
+    .anim-wiggle-active {
+      animation: rotateWiggle 0.45s ease-in-out infinite;
+    }
+
+    @keyframes gentleSway {
+      0%, 100% { transform: rotate(-3deg); transform-origin: top center; }
+      50% { transform: rotate(3deg); transform-origin: top center; }
+    }
+    .anim-sway {
+      animation: gentleSway 5s ease-in-out infinite;
+    }
+
+    @keyframes starPulse {
+      0%, 100% { opacity: 0.3; transform: scale(0.9); }
+      50% { opacity: 0.95; transform: scale(1.15); }
+    }
+    .anim-pulse-star {
+      animation: starPulse 2.8s ease-in-out infinite;
+    }
+
+    /* Early-Web Dithering & Retro Striped Pattern */
+    .retro-grid-bg {
+      background-image: radial-gradient(#a34063 1.2px, transparent 1.2px);
+      background-size: 20px 20px;
+    }
+    .dark .retro-grid-bg {
+      background-image: radial-gradient(#ffd166 1.1px, transparent 1.1px);
+      background-size: 20px 20px;
+    }
+
+    /* Modal Animation */
+    .modal-backdrop {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.28s ease-out;
+    }
+    .modal-backdrop.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-card {
+      transform: scale(0.85) translateY(20px);
+      opacity: 0;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease-out;
+    }
+    .modal-backdrop.active .modal-card {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+    }
+
+    /* Sound Wave Indicator */
+    .sound-bar {
+      transition: height 0.15s ease;
+    }
+
+    /* Pull Cord Mechanism */
+    .pull-chain {
+      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .pull-chain:active {
+      transform: translateY(18px);
+    }
+  </style>
+</head>
+<body class="bg-day dark:bg-night text-wood dark:text-softcream h-[100dvh] w-full overflow-hidden transition-colors duration-700 select-none relative">
+
+  <!-- Custom Cursor -->
+  <div id="cursor-dot" class="" style="left: 66px; top: 721px;"></div>
+
+  <!-- Main Room Container (100dvh Strict) -->
+  <main class="h-[100dvh] w-full overflow-hidden relative flex flex-col justify-between transition-colors duration-700 retro-grid-bg">
+    
+    <!-- Top Retro Banner & Controls -->
+    <header class="relative z-30 w-full px-4 pt-3 pb-2 flex items-center justify-between pointer-events-auto">
+      
+      <!-- Brand Logo / Early-Web Badge -->
+      <div class="flex items-center gap-2">
+        <div class="px-3 py-1 bg-day dark:bg-[#25151c] border-2 border-berry shadow-retro-sm rounded-lg flex items-center gap-2">
+          <span class="inline-block w-3 h-3 rounded-full bg-blush animate-ping"></span>
+          <span class="font-fredoka text-sm md:text-base font-bold text-berry dark:text-sun tracking-wide">
+            haX.baby <span class="text-xs font-mono font-normal opacity-75">:: pip's nightstand</span>
+          </span>
+          <span class="text-[10px] bg-berry text-white px-1.5 py-0.5 rounded font-mono font-bold uppercase hidden sm:inline-block">Track 1·C</span>
+        </div>
+      </div>
+
+      <!-- Center Status / Time Marquee badge -->
+      <div class="hidden md:flex items-center gap-2 px-3 py-1 bg-white/70 dark:bg-black/40 backdrop-blur-sm border-2 border-berry/40 rounded-full text-xs font-mono">
+        <span class="text-berry font-bold">● STATUS:</span>
+        <span id="room-status-text" class="text-wood dark:text-sun/90">Cozy Star-Dreaming in progress...</span>
+      </div>
+
+      <!-- Controls: Audio Toggle & Retro Day/Night Pull Cord -->
+      <div class="flex items-center gap-3">
+        <!-- Audio Mute/Sound FX Toggle -->
+        <button id="sound-toggle-btn" class="px-2.5 py-1.5 bg-day dark:bg-[#25151c] border-2 border-berry shadow-retro-sm rounded-lg flex items-center gap-1.5 text-xs font-bold text-berry dark:text-sun hover:scale-105 active:translate-y-0.5 transition-transform" title="Toggle Web Audio SFX" aria-label="Toggle Sound">
+          <svg id="sound-icon-on" class="w-4 h-4 text-berry dark:text-sun" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+          </svg>
+          <svg id="sound-icon-off" class="w-4 h-4 text-berry/50 dark:text-sun/50 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path>
+          </svg>
+          <span id="sound-label" class="font-mono text-[11px] hidden xs:inline">SFX: ON</span>
+        </button>
+
+        <!-- Literal Day/Night Dangling Pull-Cord Switch -->
+        <div class="relative flex flex-col items-center">
+          <button id="theme-toggle" class="pull-chain group flex flex-col items-center cursor-pointer focus:outline-none" aria-label="Toggle Night Mode">
+            <!-- Brass wall mount bracket -->
+            <div class="w-6 h-3 bg-wood dark:bg-sun/80 border-2 border-berry rounded-t-sm shadow-sm"></div>
+            <!-- Beaded Cord / Chain -->
+            <div class="w-1 h-6 bg-repeat-y bg-[radial-gradient(#a34063_2px,transparent_2px)] bg-[size:4px_6px] dark:bg-[radial-gradient(#ffd166_2px,transparent_2px)]"></div>
+            <!-- Vintage brass bell tassel -->
+            <div class="px-2 py-1 bg-sun dark:bg-berry border-2 border-berry rounded-full shadow-retro-sm flex items-center gap-1 group-hover:scale-110 transition-transform">
+              <span id="theme-icon" class="text-xs">☀️</span>
+              <span id="theme-text" class="text-[10px] font-fredoka font-bold text-berry dark:text-sun">DAY</span>
+            </div>
+          </button>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- Night Sky Celestial Sparkles (Visible primarily in Night Mode) -->
+    <div class="absolute inset-0 pointer-events-none z-0 overflow-hidden transition-opacity duration-700 opacity-20 dark:opacity-90">
+      <div class="absolute top-12 left-10 text-sun anim-pulse-star text-lg">✦</div>
+      <div class="absolute top-28 left-[35%] text-blush anim-pulse-star text-sm" style="animation-delay: 1.2s">★</div>
+      <div class="absolute top-20 right-20 text-sun anim-pulse-star text-xl" style="animation-delay: 0.6s">✦</div>
+      <div class="absolute top-44 right-[30%] text-white/80 anim-pulse-star text-xs" style="animation-delay: 1.8s">✧</div>
+      <div class="absolute top-36 left-4 text-sun/70 anim-pulse-star text-sm" style="animation-delay: 2.1s">★</div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- DESKTOP / TABLET ISOMETRIC ROOM VIEW (>= 768px)                     -->
+    <!-- Strictly 100dvh Zero-Scroll Organic Desk Environment                -->
+    <!-- =================================================================== -->
+    <div id="desktop-room" class="hidden md:flex flex-1 w-full h-full relative items-center justify-center overflow-hidden z-10">
+
+      <!-- Hanging Wall Mobile & Sketchbook (Top Left Wall Anchor) -->
+      <div class="absolute top-6 left-12 z-20 anim-sway cursor-pointer group interactive-obj" data-modal="modal-mobile" title="Pip's Celestial Mobile &amp; Dream Logbook">
+        <div class="relative flex flex-col items-center">
+          <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuA68Xg7F8G-1J25PkgQGryDaNuZVLBi3hi5Apyw_06FRn3uwZ879VMbGtX_0hua6gXHr7Tkji5h5ZbqCtdkp7mWVy1Pqh_QWeBpJ14pIoLKFWTDdA-kzHA2xCRPnCE0nZQt_uh1jQjE-ViNrdctQFnAVSNXUtYKtC-TNL_MU0m7mAwsdzpPShHHeUpKtgGyH1XKxu1rvhxhHYXs770k2_yp3yd9kyrvlKjQZhiAEKs2eIF5Jg1c-Rio4g" alt="Pip Wall Mobile and Logbook" class="w-36 lg:w-44 h-auto rounded-2xl drop-shadow-md group-hover:drop-shadow-xl transition-all duration-300 group-hover:scale-105 filter">
+          <!-- Retro Sticker Tag -->
+          <div class="absolute -bottom-2 bg-day dark:bg-night border-2 border-berry shadow-retro-sm px-2 py-0.5 rounded-full text-[10px] font-fredoka font-bold text-berry dark:text-sun opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all flex items-center gap-1">
+            <span class="">📖</span> <span class="">PROJECT 3 &amp; ORIGIN</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cozy Vintage Window / Wall Picture Frame (Top Right Wall Anchor) -->
+      <div class="absolute top-6 right-16 z-10 hidden lg:block pointer-events-none">
+        <div class="w-32 h-24 border-4 border-berry bg-[#ffe8d6] dark:bg-[#0f080c] shadow-retro-sm rounded-lg relative overflow-hidden flex flex-col items-center justify-center">
+          <div class="text-[10px] font-mono text-berry dark:text-sun/70 font-bold mb-1">HAX COTTAGE</div>
+          <div class="flex items-center gap-1">
+            <span class="text-xl">🌙</span>
+            <span class="text-xs font-mono text-wood/80 dark:text-softcream/80">72°F COZY</span>
+          </div>
+          <div class="absolute bottom-0 w-full h-2 bg-berry/20"></div>
+        </div>
+      </div>
+
+      <!-- THE DESK SURFACE (Bottom 40% of Screen Anchor) -->
+      <div class="absolute bottom-0 w-full h-[40%] bg-wood/10 dark:bg-white/5 border-t-4 border-berry flex items-center justify-center transition-colors duration-700">
+        <!-- Desk Wood Grain Retrowave Inset -->
+        <div class="absolute inset-0 opacity-15 bg-[repeating-linear-gradient(45deg,#5c4033_0,#5c4033_2px,transparent_0,transparent_16px)] dark:bg-[repeating-linear-gradient(45deg,#a34063_0,#a34063_2px,transparent_0,transparent_16px)]"></div>
+        <!-- Desk Mat / Felt Placemat -->
+        <div class="absolute -top-6 w-[86%] max-w-5xl h-full border-x-4 border-t-4 border-berry/40 rounded-t-3xl bg-[#f7ebe0]/50 dark:bg-[#25151c]/60 backdrop-blur-[2px]"></div>
+      </div>
+
+      <!-- DESK OBJECT 1 (LEFT): The Vintage Lullaby Box -->
+      <div class="absolute bottom-[10%] left-[8%] lg:left-[14%] z-20 cursor-pointer group interactive-obj" data-modal="modal-lullaby" title="Pip's Lullaby Box (Click to open Project 1)">
+        <div class="relative flex flex-col items-center">
+          <!-- Wiggle Hover State Animation -->
+          <div class="group-hover:scale-105 transition-transform duration-300">
+            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDsMRITVNd5H1CkVZqcn7f8ct2RRmRZ526rnjFD6d6KT9iWuznIApIcRdz0q_djxQ_3ZERoJYXxUgCMRtJucWS6aO1ChGs6DtAvM-ZKgP7KXdnkYmSHq3wdPUf49VQ_o4Z2d1g9WubwNL6AHUZLD6CHyPfit4jJ9_ZXFuItjlN5YStYUW2bsOcMa8JqtqOfU4zT9w9Sjhr1Owc28c5EZ6eXQkl3ueG5eeq7gX-UnW0_F6NLrfxhiKgfpSkVxvVZkliFCNk" alt="Pip Lullaby Box" class="w-44 lg:w-56 h-auto rounded-2xl drop-shadow-md group-hover:anim-wiggle-on-hover transition-all filter">
+          </div>
+          <!-- Retro Sticker Tag -->
+          <div class="mt-2 bg-day dark:bg-night border-2 border-berry shadow-retro-sm px-2.5 py-1 rounded-md text-xs font-fredoka font-bold text-berry dark:text-sun group-hover:bg-sun group-hover:text-wood dark:group-hover:bg-berry dark:group-hover:text-white transition-colors flex items-center gap-1.5">
+            <span class="text-sm">🎵</span> 
+            <span class="">PROJECT 1: LULLABY LAB</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- DESK OBJECT 2 (CENTER ANCHOR): Pip Portrait (Hovering above desk) -->
+      <div class="absolute bottom-[20%] left-1/2 -translate-x-1/2 z-30 cursor-pointer group interactive-obj" data-modal="modal-pip" title="Who is Pip? (Click for Character Lore)">
+        <div class="relative flex flex-col items-center">
+          <!-- Continuous CSS translate-y floating animation -->
+          <div class="anim-pip-float group-hover:scale-110 transition-transform duration-300">
+            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBpFf7FChgc7F7D_dDa_2sCeLubPo6iIgtl90nhA7-Upo-0zwN5G4TlGNa0Q5FhZIjEsPWuftCE5RYrvJHDs8Ui5SAimHJOuhOrodeY4ntfYavpi_7KyrT7MCp7pEwjyQEjKmXkC539nL7Dm2tRfuetqyf3L9ciong5sjF-3nvqcQ9UI7efIpCjCxgB-FMvSdLIPoCLG7mH3Hgs0mjZFmVViPkw8vIAJarzrjlIWUHbNboq9tPGdWETDhzd9th7SaA3LWU" alt="Pip Portrait" class="w-52 lg:w-64 h-auto rounded-3xl drop-shadow-xl group-hover:drop-shadow-2xl filter object-contain">
+          </div>
+          <!-- Clickable Interactive Banner -->
+          <div class="-mt-4 bg-day dark:bg-[#2a131e] border-3 border-berry shadow-retro px-4 py-1.5 rounded-full text-sm font-fredoka font-bold text-berry dark:text-sun group-hover:scale-110 group-hover:bg-blush group-hover:text-white transition-all flex items-center gap-2">
+            <span class="animate-bounce">✨</span> 
+            <span class="">WHO IS PIP? (CLICK ME!)</span>
+            <span class="text-xs bg-berry text-white dark:bg-sun dark:text-wood px-1.5 py-0.5 rounded-full font-mono">LORE</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- DESK OBJECT 3 (RIGHT): Pip's Dream Lantern -->
+      <div class="absolute bottom-[10%] right-[8%] lg:right-[14%] z-20 cursor-pointer group interactive-obj" data-modal="modal-lantern" title="Pip's Dream Lantern (Click for Project 2)">
+        <div class="relative flex flex-col items-center">
+          <!-- Hover & Night mode heavy glowing drop shadow -->
+          <div class="group-hover:scale-105 transition-transform duration-300">
+            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCNhOrkVrYV2f-Vg1Tr4Ji3yd-Y8ruAac8VmAIHrjGLe8Wp2DLkaMi9p1GjjeivmOkz7T_z5hMTS9Mgns9WHz40QuKZF46vJgc4pY9NZxKozBS1tvVo6O6qYuJQdglv4K9v7g6s5Vr81pTqM2VkDtQN8mf_jEPBEs4ugX8Q6WOqCLaNdjP9MthH31_PlXEx3HYINLg1t-IbEbVY1dCbS02q5lfJ9LRSAN8XnCT2SEJ59p6R810SPo8cWrvOjqLl6AU4EHE" alt="Pip Dream Lantern" class="w-40 lg:w-52 h-auto rounded-2xl drop-shadow-md group-hover:drop-shadow-glow-gold dark:drop-shadow-glow-berry transition-all filter">
+          </div>
+          <!-- Retro Sticker Tag -->
+          <div class="mt-2 bg-day dark:bg-night border-2 border-berry shadow-retro-sm px-2.5 py-1 rounded-md text-xs font-fredoka font-bold text-berry dark:text-sun group-hover:bg-sun group-hover:text-wood dark:group-hover:bg-berry dark:group-hover:text-white transition-colors flex items-center gap-1.5">
+            <span class="text-sm">🏮</span> 
+            <span class="">PROJECT 2: NIGHTLIGHT</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- MOBILE SCRAPBOOK MODE (< 768px Responsive Chaos Mode)              -->
+    <!-- No cramped horizontal shrinking: Snaps to 2x2 Polaroid Wall        -->
+    <!-- Safe tap targets (> 64x64px), Thick White Retro Polaroid Borders    -->
+    <!-- =================================================================== -->
+    <div id="mobile-scrapbook" class="flex md:hidden flex-1 w-full h-full flex-col justify-center px-4 py-2 z-10 overflow-hidden">
+      
+      <!-- Mobile Sub-Header -->
+      <div class="text-center mb-2">
+        <h1 class="font-fredoka text-lg font-bold text-berry dark:text-sun leading-tight">
+          Pip's Dreamroom Scrapbook
+        </h1>
+        <p class="text-[11px] font-mono text-wood/80 dark:text-softcream/70">
+          Tap any polaroid sticker to inspect its dream artifact!
+        </p>
+      </div>
+
+      <!-- 2x2 Polaroid Grid for Confident Tap Targets -->
+      <div class="grid grid-cols-2 gap-3 w-full max-w-sm mx-auto items-center">
+        
+        <!-- Polaroid 1: Pip Character -->
+        <button class="interactive-obj polaroid-card p-2 bg-white dark:bg-[#25151c] border-3 border-berry shadow-retro rounded-lg flex flex-col items-center justify-between aspect-square active:scale-95 transition-transform text-left group" data-modal="modal-pip" aria-label="Who is Pip Modal">
+          <div class="w-full flex justify-between items-center text-[9px] font-mono text-berry font-bold pb-1 border-b border-berry/20">
+            <span class="">#00 · ME</span>
+            <span class="">★ LORE</span>
+          </div>
+          <div class="flex-1 w-full flex items-center justify-center p-1">
+            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBpFf7FChgc7F7D_dDa_2sCeLubPo6iIgtl90nhA7-Upo-0zwN5G4TlGNa0Q5FhZIjEsPWuftCE5RYrvJHDs8Ui5SAimHJOuhOrodeY4ntfYavpi_7KyrT7MCp7pEwjyQEjKmXkC539nL7Dm2tRfuetqyf3L9ciong5sjF-3nvqcQ9UI7efIpCjCxgB-FMvSdLIPoCLG7mH3Hgs0mjZFmVViPkw8vIAJarzrjlIWUHbNboq9tPGdWETDhzd9th7SaA3LWU" alt="Pip" class="max-h-24 rounded-lg object-contain filter group-hover:scale-105 transition-transform">
+          </div>
+          <div class="w-full bg-[#fdf5ed] dark:bg-[#1a0e14] border border-berry/40 rounded px-1.5 py-1 text-center">
+            <span class="font-fredoka text-xs font-bold text-berry dark:text-sun block leading-none">Who is Pip?</span>
+          </div>
+        </button>
+
+        <!-- Polaroid 2: Lullaby Box -->
+        <button class="interactive-obj polaroid-card p-2 bg-white dark:bg-[#25151c] border-3 border-berry shadow-retro rounded-lg flex flex-col items-center justify-between aspect-square active:scale-95 transition-transform text-left group" data-modal="modal-lullaby" aria-label="Project 1 Lullaby Box Modal">
+          <div class="w-full flex justify-between items-center text-[9px] font-mono text-berry font-bold pb-1 border-b border-berry/20">
+            <span class="">#01 · AUDIO</span>
+            <span class="">♫ LAB</span>
+          </div>
+          <div class="flex-1 w-full flex items-center justify-center p-1">
+            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDsMRITVNd5H1CkVZqcn7f8ct2RRmRZ526rnjFD6d6KT9iWuznIApIcRdz0q_djxQ_3ZERoJYXxUgCMRtJucWS6aO1ChGs6DtAvM-ZKgP7KXdnkYmSHq3wdPUf49VQ_o4Z2d1g9WubwNL6AHUZLD6CHyPfit4jJ9_ZXFuItjlN5YStYUW2bsOcMa8JqtqOfU4zT9w9Sjhr1Owc28c5EZ6eXQkl3ueG5eeq7gX-UnW0_F6NLrfxhiKgfpSkVxvVZkliFCNk" alt="Lullaby Box" class="max-h-24 rounded-lg object-contain filter group-hover:scale-105 transition-transform">
+          </div>
+          <div class="w-full bg-[#fdf5ed] dark:bg-[#1a0e14] border border-berry/40 rounded px-1.5 py-1 text-center">
+            <span class="font-fredoka text-xs font-bold text-berry dark:text-sun block leading-none">Lullaby Lab</span>
+          </div>
+        </button>
+
+        <!-- Polaroid 3: Dream Lantern -->
+        <button class="interactive-obj polaroid-card p-2 bg-white dark:bg-[#25151c] border-3 border-berry shadow-retro rounded-lg flex flex-col items-center justify-between aspect-square active:scale-95 transition-transform text-left group" data-modal="modal-lantern" aria-label="Project 2 Nightlight Lantern Modal">
+          <div class="w-full flex justify-between items-center text-[9px] font-mono text-berry font-bold pb-1 border-b border-berry/20">
+            <span class="">#02 · GLOW</span>
+            <span class="">🏮 LIGHT</span>
+          </div>
+          <div class="flex-1 w-full flex items-center justify-center p-1">
+            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCNhOrkVrYV2f-Vg1Tr4Ji3yd-Y8ruAac8VmAIHrjGLe8Wp2DLkaMi9p1GjjeivmOkz7T_z5hMTS9Mgns9WHz40QuKZF46vJgc4pY9NZxKozBS1tvVo6O6qYuJQdglv4K9v7g6s5Vr81pTqM2VkDtQN8mf_jEPBEs4ugX8Q6WOqCLaNdjP9MthH31_PlXEx3HYINLg1t-IbEbVY1dCbS02q5lfJ9LRSAN8XnCT2SEJ59p6R810SPo8cWrvOjqLl6AU4EHE" alt="Dream Lantern" class="max-h-24 rounded-lg object-contain filter group-hover:scale-105 transition-transform">
+          </div>
+          <div class="w-full bg-[#fdf5ed] dark:bg-[#1a0e14] border border-berry/40 rounded px-1.5 py-1 text-center">
+            <span class="font-fredoka text-xs font-bold text-berry dark:text-sun block leading-none">Nightlight Co.</span>
+          </div>
+        </button>
+
+        <!-- Polaroid 4: Mobile & Origin -->
+        <button class="interactive-obj polaroid-card p-2 bg-white dark:bg-[#25151c] border-3 border-berry shadow-retro rounded-lg flex flex-col items-center justify-between aspect-square active:scale-95 transition-transform text-left group" data-modal="modal-mobile" aria-label="Project 3 Origin Story Modal">
+          <div class="w-full flex justify-between items-center text-[9px] font-mono text-berry font-bold pb-1 border-b border-berry/20">
+            <span class="">#03 · ORIGIN</span>
+            <span class="">📖 LOG</span>
+          </div>
+          <div class="flex-1 w-full flex items-center justify-center p-1">
+            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuA68Xg7F8G-1J25PkgQGryDaNuZVLBi3hi5Apyw_06FRn3uwZ879VMbGtX_0hua6gXHr7Tkji5h5ZbqCtdkp7mWVy1Pqh_QWeBpJ14pIoLKFWTDdA-kzHA2xCRPnCE0nZQt_uh1jQjE-ViNrdctQFnAVSNXUtYKtC-TNL_MU0m7mAwsdzpPShHHeUpKtgGyH1XKxu1rvhxhHYXs770k2_yp3yd9kyrvlKjQZhiAEKs2eIF5Jg1c-Rio4g" alt="Star Mobile &amp; Notebook" class="max-h-24 rounded-lg object-contain filter group-hover:scale-105 transition-transform">
+          </div>
+          <div class="w-full bg-[#fdf5ed] dark:bg-[#1a0e14] border border-berry/40 rounded px-1.5 py-1 text-center">
+            <span class="font-fredoka text-xs font-bold text-berry dark:text-sun block leading-none">Dream Routes</span>
+          </div>
+        </button>
+
+      </div>
+    </div>
+
+    <!-- Bottom Footer Status / Help Bar (Zero-Scroll Layout Footer) -->
+    <footer class="w-full px-4 py-2 bg-white/80 dark:bg-black/40 border-t-2 border-berry/30 flex items-center justify-between text-[11px] font-mono z-30 pointer-events-auto">
+      <div class="flex items-center gap-2">
+        <span class="text-berry font-bold">MODE:</span>
+        <span class="font-fredoka text-xs text-wood dark:text-sun font-semibold">Track 1 / Concept C</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="text-wood/60 dark:text-softcream/60 hidden sm:inline">Sound powered by Web Audio API</span>
+        <button id="quick-lore-btn" class="text-berry underline font-bold hover:text-blush">Instructions</button>
+      </div>
+    </footer>
+
+  </main>
+
+
+  <!-- =================================================================== -->
+  <!-- RETRO CONTENT MODALS                                                -->
+  <!-- Thick #a34063 borders, harsh offset drop-shadows (shadow-retro-lg),  -->
+  <!-- Oversized [X] close button, heavy backdrop-blur-sm bg-black/40      -->
+  <!-- =================================================================== -->
+
+  <!-- MODAL 1: WHO IS PIP? (Center Anchor) -->
+  <div id="modal-pip" class="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm bg-black/40">
+    <div class="modal-card w-full max-w-lg bg-day dark:bg-[#201219] border-4 border-berry shadow-retro-lg rounded-2xl overflow-hidden relative">
+      
+      <!-- Retro Modal Header -->
+      <div class="bg-berry px-4 py-2.5 flex items-center justify-between text-white">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">☁️</span>
+          <h2 class="font-fredoka font-bold text-base md:text-lg tracking-wide">ID CARD: Who is Pip?</h2>
+        </div>
+        <button class="modal-close-btn w-8 h-8 rounded-full bg-sun text-berry font-fredoka font-bold text-lg flex items-center justify-center hover:bg-white hover:scale-110 active:scale-95 transition-transform border-2 border-berry shadow-retro-sm" aria-label="Close modal">
+          ✕
+        </button>
+      </div>
+
+      <!-- Content Area -->
+      <div class="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
+        <!-- Profile Banner -->
+        <div class="flex flex-col sm:flex-row items-center gap-4 p-3 bg-softcream/80 dark:bg-[#2b1722] border-2 border-berry/40 rounded-xl">
+          <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBpFf7FChgc7F7D_dDa_2sCeLubPo6iIgtl90nhA7-Upo-0zwN5G4TlGNa0Q5FhZIjEsPWuftCE5RYrvJHDs8Ui5SAimHJOuhOrodeY4ntfYavpi_7KyrT7MCp7pEwjyQEjKmXkC539nL7Dm2tRfuetqyf3L9ciong5sjF-3nvqcQ9UI7efIpCjCxgB-FMvSdLIPoCLG7mH3Hgs0mjZFmVViPkw8vIAJarzrjlIWUHbNboq9tPGdWETDhzd9th7SaA3LWU" alt="Pip Headshot" class="w-24 h-24 rounded-xl object-cover filter drop-shadow">
+          <div class="text-center sm:text-left">
+            <div class="inline-block px-2 py-0.5 bg-berry text-white text-[10px] font-mono font-bold rounded mb-1">DESIGNER / SLUMBER ARCHITECT</div>
+            <h3 class="font-fredoka text-xl font-bold text-berry dark:text-sun">Pip The Star-Dreamer</h3>
+            <p class="text-xs font-mono text-wood/80 dark:text-softcream/80">Chief Cozy Officer at haX.baby · Age: 3 dream-cycles</p>
+          </div>
+        </div>
+
+        <!-- Identity / Job / Quirks Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="p-3 bg-white dark:bg-[#1a0e14] border-2 border-berry rounded-lg shadow-retro-sm">
+            <span class="text-xs font-mono font-bold text-berry dark:text-sun block mb-1">🏷️ IDENTITY</span>
+            <p class="text-xs text-wood dark:text-softcream/90 leading-relaxed">
+              Part marshmallow, part early-web starlight creature. Born in a Geocities guestbook.
+            </p>
+          </div>
+          <div class="p-3 bg-white dark:bg-[#1a0e14] border-2 border-berry rounded-lg shadow-retro-sm">
+            <span class="text-xs font-mono font-bold text-berry dark:text-sun block mb-1">💼 THE JOB</span>
+            <p class="text-xs text-wood dark:text-softcream/90 leading-relaxed">
+              Crafts whimsical analog bedtime interfaces and tests bedtime melodies for dreamers.
+            </p>
+          </div>
+          <div class="p-3 bg-white dark:bg-[#1a0e14] border-2 border-berry rounded-lg shadow-retro-sm">
+            <span class="text-xs font-mono font-bold text-berry dark:text-sun block mb-1">✨ QUIRKS</span>
+            <p class="text-xs text-wood dark:text-softcream/90 leading-relaxed">
+              Sleeps 18 hours/day in a wool nightcap; only writes code in 100dvh retro frames.
+            </p>
+          </div>
+        </div>
+
+        <!-- Quote -->
+        <div class="p-3 bg-sun/30 dark:bg-sun/10 border-l-4 border-sun rounded-r-lg">
+          <p class="font-fredoka text-sm italic text-wood dark:text-sun">
+            "When the digital world grows loud and cold, pull the cord, wind the music box, and rest your eyes."
+          </p>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-5 py-3 bg-[#fdf3e7] dark:bg-[#180d13] border-t-2 border-berry/30 flex justify-end">
+        <button class="modal-close-btn px-4 py-1.5 bg-berry text-white font-fredoka font-bold rounded-lg border-2 border-berry shadow-retro-sm hover:bg-blush transition-colors text-sm">
+          Got It, Sleep Well!
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- MODAL 2: PROJECT 1 - THE LULLABY LAB (Left Desk Anchor) -->
+  <div id="modal-lullaby" class="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm bg-black/40">
+    <div class="modal-card w-full max-w-lg bg-day dark:bg-[#201219] border-4 border-berry shadow-retro-lg rounded-2xl overflow-hidden relative">
+      
+      <div class="bg-berry px-4 py-2.5 flex items-center justify-between text-white">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">🎵</span>
+          <h2 class="font-fredoka font-bold text-base md:text-lg tracking-wide">PROJECT 1: The Lullaby Lab</h2>
+        </div>
+        <button class="modal-close-btn w-8 h-8 rounded-full bg-sun text-berry font-fredoka font-bold text-lg flex items-center justify-center hover:bg-white hover:scale-110 active:scale-95 transition-transform border-2 border-berry shadow-retro-sm" aria-label="Close modal">
+          ✕
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
+        <div class="flex items-center gap-4">
+          <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDsMRITVNd5H1CkVZqcn7f8ct2RRmRZ526rnjFD6d6KT9iWuznIApIcRdz0q_djxQ_3ZERoJYXxUgCMRtJucWS6aO1ChGs6DtAvM-ZKgP7KXdnkYmSHq3wdPUf49VQ_o4Z2d1g9WubwNL6AHUZLD6CHyPfit4jJ9_ZXFuItjlN5YStYUW2bsOcMa8JqtqOfU4zT9w9Sjhr1Owc28c5EZ6eXQkl3ueG5eeq7gX-UnW0_F6NLrfxhiKgfpSkVxvVZkliFCNk" alt="Lullaby Box" class="w-24 h-24 rounded-xl object-cover filter drop-shadow">
+          <div>
+            <span class="px-2 py-0.5 bg-sun text-wood text-[10px] font-mono font-bold rounded">ANALOG AUDIO HARDWARE</span>
+            <h3 class="font-fredoka text-xl font-bold text-berry dark:text-sun mt-1">Mechanical Music Box v1.4</h3>
+            <p class="text-xs font-mono text-wood/80 dark:text-softcream/80">Woven with 18-tooth brass comb &amp; micro-springs</p>
+          </div>
+        </div>
+
+        <div class="p-4 bg-white dark:bg-[#1a0e14] border-2 border-berry rounded-xl shadow-retro-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="font-fredoka text-sm font-bold text-berry dark:text-sun">Interactive Tone Generator</span>
+            <span class="text-[10px] font-mono bg-berry/10 dark:bg-berry/30 px-2 py-0.5 rounded text-berry dark:text-sun">432Hz Harmonic</span>
+          </div>
+          <p class="text-xs text-wood dark:text-softcream/90 leading-relaxed font-mono">
+            Click the tone pedals below to play soothing dream chords synthesized directly through the browser Web Audio oscillator!
+          </p>
+          <!-- Synthesizer buttons -->
+          <div class="grid grid-cols-4 gap-2 pt-1">
+            <button class="tone-btn py-2 bg-softcream dark:bg-[#2e1924] border-2 border-berry shadow-retro-sm rounded text-xs font-fredoka font-bold text-berry dark:text-sun hover:bg-sun active:scale-95 transition-all" data-note="261.63">C4 (Do)</button>
+            <button class="tone-btn py-2 bg-softcream dark:bg-[#2e1924] border-2 border-berry shadow-retro-sm rounded text-xs font-fredoka font-bold text-berry dark:text-sun hover:bg-sun active:scale-95 transition-all" data-note="329.63">E4 (Mi)</button>
+            <button class="tone-btn py-2 bg-softcream dark:bg-[#2e1924] border-2 border-berry shadow-retro-sm rounded text-xs font-fredoka font-bold text-berry dark:text-sun hover:bg-sun active:scale-95 transition-all" data-note="392.00">G4 (Sol)</button>
+            <button class="tone-btn py-2 bg-softcream dark:bg-[#2e1924] border-2 border-berry shadow-retro-sm rounded text-xs font-fredoka font-bold text-berry dark:text-sun hover:bg-sun active:scale-95 transition-all" data-note="523.25">C5 (Star)</button>
+          </div>
+        </div>
+
+        <div class="text-xs font-mono text-wood/80 dark:text-softcream/70 p-3 bg-day dark:bg-[#150a10] border border-berry/30 rounded-lg">
+          <p class=""><strong>Design Rationale:</strong> In Track 1, Concept C, tactile sound triggers simulate the tangible joy of 90s toy winding keys. Each tooth generates pure sine waves to soothe restless nocturnal browsers.</p>
+        </div>
+      </div>
+
+      <div class="px-5 py-3 bg-[#fdf3e7] dark:bg-[#180d13] border-t-2 border-berry/30 flex justify-end">
+        <button class="modal-close-btn px-4 py-1.5 bg-berry text-white font-fredoka font-bold rounded-lg border-2 border-berry shadow-retro-sm hover:bg-blush transition-colors text-sm">
+          Close Box
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- MODAL 3: PROJECT 2 - NIGHTLIGHT COLLECTION (Right Desk Anchor) -->
+  <div id="modal-lantern" class="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm bg-black/40 active">
+    <div class="modal-card w-full max-w-lg bg-day dark:bg-[#201219] border-4 border-berry shadow-retro-lg rounded-2xl overflow-hidden relative">
+      
+      <div class="bg-berry px-4 py-2.5 flex items-center justify-between text-white">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">🏮</span>
+          <h2 class="font-fredoka font-bold text-base md:text-lg tracking-wide">PROJECT 2: The Nightlight Collection</h2>
+        </div>
+        <button class="modal-close-btn w-8 h-8 rounded-full bg-sun text-berry font-fredoka font-bold text-lg flex items-center justify-center hover:bg-white hover:scale-110 active:scale-95 transition-transform border-2 border-berry shadow-retro-sm" aria-label="Close modal">
+          ✕
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
+        <div class="flex items-center gap-4">
+          <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCNhOrkVrYV2f-Vg1Tr4Ji3yd-Y8ruAac8VmAIHrjGLe8Wp2DLkaMi9p1GjjeivmOkz7T_z5hMTS9Mgns9WHz40QuKZF46vJgc4pY9NZxKozBS1tvVo6O6qYuJQdglv4K9v7g6s5Vr81pTqM2VkDtQN8mf_jEPBEs4ugX8Q6WOqCLaNdjP9MthH31_PlXEx3HYINLg1t-IbEbVY1dCbS02q5lfJ9LRSAN8XnCT2SEJ59p6R810SPo8cWrvOjqLl6AU4EHE" alt="Dream Lantern" class="w-24 h-24 rounded-xl object-cover filter drop-shadow">
+          <div>
+            <span class="px-2 py-0.5 bg-blush text-white text-[10px] font-mono font-bold rounded">LUMEN EXPERIMENT</span>
+            <h3 class="font-fredoka text-xl font-bold text-berry dark:text-sun mt-1">Dreamfire Cloche Lantern</h3>
+            <p class="text-xs font-mono text-wood/80 dark:text-softcream/80">Forged with brass fittings &amp; captured star dust</p>
+          </div>
+        </div>
+
+        <div class="p-4 bg-white dark:bg-[#1a0e14] border-2 border-berry rounded-xl shadow-retro-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="font-fredoka text-sm font-bold text-berry dark:text-sun">Luminance Spectrum</span>
+            <span id="lum-label" class="text-xs font-mono font-bold text-berry dark:text-sun">2700K Warm Ember</span>
+          </div>
+          <!-- Interactive Color Swatches -->
+          <div class="flex gap-2">
+            <button class="lantern-color-btn flex-1 py-2 rounded border-2 border-berry shadow-retro-sm bg-[#ffd166] text-[10px] font-fredoka font-bold text-wood active:scale-95" data-color="#ffd166" data-name="Golden Mote">Gold</button>
+            <button class="lantern-color-btn flex-1 py-2 rounded border-2 border-berry shadow-retro-sm bg-[#ff7597] text-[10px] font-fredoka font-bold text-white active:scale-95" data-color="#ff7597" data-name="Berry Sunset">Berry</button>
+            <button class="lantern-color-btn flex-1 py-2 rounded border-2 border-berry shadow-retro-sm bg-[#a8dadc] text-[10px] font-fredoka font-bold text-wood active:scale-95" data-color="#a8dadc" data-name="Deep Dream Blue">Starlight</button>
+          </div>
+          <p class="text-xs font-mono text-wood/80 dark:text-softcream/80 leading-relaxed">
+            In Night Mode, this lantern emits a concentrated <code>#a34063</code> drop shadow into the room canvas, warding off scary bugs and sleepless loops.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 text-xs font-mono">
+          <div class="p-2.5 bg-softcream/80 dark:bg-[#291621] border border-berry/40 rounded-lg">
+            <span class="font-bold text-berry dark:text-sun block">BATTERY LIFE:</span>
+            <span class="">Infinite dream-cycles (Solar charged by morning sun).</span>
+          </div>
+          <div class="p-2.5 bg-softcream/80 dark:bg-[#291621] border border-berry/40 rounded-lg">
+            <span class="font-bold text-berry dark:text-sun block">MATERIAL:</span>
+            <span class="">Spun hand-blown cloche glass &amp; aged copper rivets.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="px-5 py-3 bg-[#fdf3e7] dark:bg-[#180d13] border-t-2 border-berry/30 flex justify-end">
+        <button class="modal-close-btn px-4 py-1.5 bg-berry text-white font-fredoka font-bold rounded-lg border-2 border-berry shadow-retro-sm hover:bg-blush transition-colors text-sm">
+          Leave Lantern Lit
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- MODAL 4: PROJECT 3 & ORIGIN STORY (Wall Mobile Anchor) -->
+  <div id="modal-mobile" class="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm bg-black/40">
+    <div class="modal-card w-full max-w-lg bg-day dark:bg-[#201219] border-4 border-berry shadow-retro-lg rounded-2xl overflow-hidden relative">
+      
+      <div class="bg-berry px-4 py-2.5 flex items-center justify-between text-white">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">📖</span>
+          <h2 class="font-fredoka font-bold text-base md:text-lg tracking-wide">Project 3 &amp; Origin Story</h2>
+        </div>
+        <button class="modal-close-btn w-8 h-8 rounded-full bg-sun text-berry font-fredoka font-bold text-lg flex items-center justify-center hover:bg-white hover:scale-110 active:scale-95 transition-transform border-2 border-berry shadow-retro-sm" aria-label="Close modal">
+          ✕
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
+        <!-- 150-word Origin Story Box -->
+        <div class="p-4 bg-white dark:bg-[#1a0e14] border-2 border-berry rounded-xl shadow-retro-sm space-y-2">
+          <div class="flex items-center justify-between border-b border-berry/20 pb-1">
+            <span class="font-fredoka font-bold text-berry dark:text-sun text-sm">The Tale of haX.baby &amp; Pip</span>
+            <span class="text-[10px] font-mono bg-berry text-white px-1.5 py-0.5 rounded font-bold">150-WORD ORIGIN</span>
+          </div>
+          <p class="text-xs leading-relaxed font-mono text-wood dark:text-softcream">
+            Deep inside the forgotten dial-up nodes of the late nineties, when CRT monitors hummed with gentle static, a lone digital dreamer named Pip awoke. Surrounded by neon banners, blinking marquees, and endless endless scroll feeds that drained human souls, Pip sought refuge in the quiet hours between midnight and dawn.
+          </p>
+          <p class="text-xs leading-relaxed font-mono text-wood dark:text-softcream">
+            Pip gathered discarded vector stars, wooden lullaby gears, and vintage bedtime cloches to build haX.baby: an enclave where interfaces honor rest instead of endless metrics. Here on the nightstand, every corner is finite, zero-scroll, and intentionally soothing. No doom-scrolling, no algorithmic urgency—just a warm glowing cloche, an honest song, and starry skies.
+          </p>
+        </div>
+
+        <!-- Dream Routes Showcase -->
+        <div>
+          <h4 class="font-fredoka font-bold text-sm text-berry dark:text-sun mb-2">★ Dream Routes Network</h4>
+          <div class="space-y-2">
+            <div class="p-2.5 bg-softcream/80 dark:bg-[#25151c] border border-berry/30 rounded-lg flex items-center justify-between text-xs font-mono">
+              <span class="font-bold text-berry dark:text-sun">Route 01: Cradle Protocol</span>
+              <span class="text-[10px] bg-sun text-wood px-2 py-0.5 rounded font-bold">ACTIVE</span>
+            </div>
+            <div class="p-2.5 bg-softcream/80 dark:bg-[#25151c] border border-berry/30 rounded-lg flex items-center justify-between text-xs font-mono">
+              <span class="font-bold text-berry dark:text-sun">Route 02: Starlight Bus (02:15 AM)</span>
+              <span class="text-[10px] bg-berry/20 text-berry dark:text-sun px-2 py-0.5 rounded font-bold">DISPATCHED</span>
+            </div>
+            <div class="p-2.5 bg-softcream/80 dark:bg-[#25151c] border border-berry/30 rounded-lg flex items-center justify-between text-xs font-mono">
+              <span class="font-bold text-berry dark:text-sun">Route 03: Pillow Cloud Ferry</span>
+              <span class="text-[10px] bg-blush text-white px-2 py-0.5 rounded font-bold">SCHEDULED</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="px-5 py-3 bg-[#fdf3e7] dark:bg-[#180d13] border-t-2 border-berry/30 flex justify-end">
+        <button class="modal-close-btn px-4 py-1.5 bg-berry text-white font-fredoka font-bold rounded-lg border-2 border-berry shadow-retro-sm hover:bg-blush transition-colors text-sm">
+          Bookmark Dream Route
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- MODAL 5: QUICK INSTRUCTIONS / HELP DIALOG -->
+  <div id="modal-help" class="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm bg-black/40">
+    <div class="modal-card w-full max-w-md bg-day dark:bg-[#201219] border-4 border-berry shadow-retro-lg rounded-2xl overflow-hidden relative">
+      <div class="bg-berry px-4 py-2.5 flex items-center justify-between text-white">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">✨</span>
+          <h2 class="font-fredoka font-bold text-base tracking-wide">Interactive Nightstand Guide</h2>
+        </div>
+        <button class="modal-close-btn w-8 h-8 rounded-full bg-sun text-berry font-fredoka font-bold text-lg flex items-center justify-center hover:bg-white hover:scale-110 active:scale-95 transition-transform border-2 border-berry shadow-retro-sm" aria-label="Close modal">✕</button>
+      </div>
+      <div class="p-5 space-y-3 text-xs font-mono text-wood dark:text-softcream">
+        <p class=""><strong>1. Zero-Scroll Strictness:</strong> Everything fits within 100dvh without page scrollbars.</p>
+        <p class=""><strong>2. Audio Feedback:</strong> Powered by Web Audio API synthesizers. Toggle mute in the top right.</p>
+        <p class=""><strong>3. Day/Night Pull Cord:</strong> Tug the brass beaded tassel in top right to toggle between Warm Cream (#fff8f1) and Deep Berry/Espresso (#1a1014).</p>
+        <p class=""><strong>4. Mobile Scrapbook:</strong> On screens &lt; 768px, layout smoothly snaps into a 2x2 sticker polaroid wall with safe 64px+ tap targets.</p>
+      </div>
+      <div class="px-5 py-3 bg-[#fdf3e7] dark:bg-[#180d13] border-t-2 border-berry/30 flex justify-end">
+        <button class="modal-close-btn px-4 py-1.5 bg-berry text-white font-fredoka font-bold rounded-lg border-2 border-berry shadow-retro-sm hover:bg-blush transition-colors text-sm">Close</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- =================================================================== -->
+  <!-- JAVASCRIPT: Audio Engine, Theme Toggle, Modals, Cursor              -->
+  <!-- =================================================================== -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      
+      // -------------------------------------------------------------
+      // 1. Web Audio API Engine (Mechanical Clack & Melodic Chimes)
+      // -------------------------------------------------------------
+      let audioCtx = null;
+      let soundEnabled = true;
+
+      function initAudio() {
+        if (!audioCtx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) {
+            audioCtx = new AudioContext();
+          }
+        }
+        if (audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+      }
+
+      // Satisfying Mechanical "Clack"
+      function playMechanicalClack() {
+        if (!soundEnabled) return;
+        initAudio();
+        if (!audioCtx) return;
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        const filter = audioCtx.createBiquadFilter();
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(320, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.06);
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(1800, audioCtx.currentTime);
+
+        gain.gain.setValueAtTime(0.35, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.07);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.08);
+      }
+
+      // Celestial Chime
+      function playCelestialChime(freq = 523.25) {
+        if (!soundEnabled) return;
+        initAudio();
+        if (!audioCtx) return;
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(freq * 1.5, audioCtx.currentTime + 0.45);
+
+        gain.gain.setValueAtTime(0.28, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.52);
+      }
+
+      // Sound Toggle Button
+      const soundBtn = document.getElementById('sound-toggle-btn');
+      const soundIconOn = document.getElementById('sound-icon-on');
+      const soundIconOff = document.getElementById('sound-icon-off');
+      const soundLabel = document.getElementById('sound-label');
+
+      soundBtn.addEventListener('click', () => {
+        soundEnabled = !soundEnabled;
+        if (soundEnabled) {
+          soundIconOn.classList.remove('hidden');
+          soundIconOff.classList.add('hidden');
+          soundLabel.textContent = 'SFX: ON';
+          playCelestialChime(659.25);
+        } else {
+          soundIconOn.classList.add('hidden');
+          soundIconOff.classList.remove('hidden');
+          soundLabel.textContent = 'SFX: MUTED';
+        }
+      });
+
+      // -------------------------------------------------------------
+      // 2. Custom Trailing Cursor with Hover Morphing
+      // -------------------------------------------------------------
+      const cursorDot = document.getElementById('cursor-dot');
+      let mouseX = window.innerWidth / 2;
+      let mouseY = window.innerHeight / 2;
+      let cursorX = mouseX;
+      let cursorY = mouseY;
+
+      window.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+      });
+
+      function renderCursor() {
+        // Trailing lag effect
+        cursorX += (mouseX - cursorX) * 0.28;
+        cursorY += (mouseY - cursorY) * 0.28;
+        cursorDot.style.left = `${cursorX}px`;
+        cursorDot.style.top = `${cursorY}px`;
+        requestAnimationFrame(renderCursor);
+      }
+      renderCursor();
+
+      // Transform cursor over interactive desk objects
+      const interactiveElements = document.querySelectorAll('.interactive-obj, button, a');
+      interactiveElements.forEach(el => {
+        el.addEventListener('mouseenter', () => {
+          cursorDot.classList.add('cursor-hover');
+        });
+        el.addEventListener('mouseleave', () => {
+          cursorDot.classList.remove('cursor-hover');
+        });
+      });
+
+      // -------------------------------------------------------------
+      // 3. Day / Night Pull-Cord Toggle
+      // -------------------------------------------------------------
+      const themeToggle = document.getElementById('theme-toggle');
+      const htmlEl = document.documentElement;
+      const themeIcon = document.getElementById('theme-icon');
+      const themeText = document.getElementById('theme-text');
+      const roomStatus = document.getElementById('room-status-text');
+
+      themeToggle.addEventListener('click', () => {
+        playMechanicalClack();
+        setTimeout(() => playCelestialChime(440), 60);
+
+        if (htmlEl.classList.contains('dark')) {
+          htmlEl.classList.remove('dark');
+          themeIcon.textContent = '☀️';
+          themeText.textContent = 'DAY';
+          roomStatus.textContent = 'Cozy Daytime Sunbeams in room...';
+        } else {
+          htmlEl.classList.add('dark');
+          themeIcon.textContent = '🌙';
+          themeText.textContent = 'NIGHT';
+          roomStatus.textContent = 'Dream Lantern glowing warm in night...';
+        }
+      });
+
+      // -------------------------------------------------------------
+      // 4. Modal Open & Close System
+      // -------------------------------------------------------------
+      function openModal(modalId) {
+        playMechanicalClack();
+        setTimeout(() => playCelestialChime(587.33), 80);
+        const modal = document.getElementById(modalId);
+        if (modal) {
+          modal.classList.add('active');
+        }
+      }
+
+      function closeModal() {
+        playMechanicalClack();
+        document.querySelectorAll('.modal-backdrop').forEach(modal => {
+          modal.classList.remove('active');
+        });
+      }
+
+      // Object click events
+      document.querySelectorAll('.interactive-obj').forEach(obj => {
+        obj.addEventListener('click', () => {
+          const targetModal = obj.getAttribute('data-modal');
+          if (targetModal) {
+            openModal(targetModal);
+          }
+        });
+      });
+
+      // Close buttons
+      document.querySelectorAll('.modal-close-btn').forEach(btn => {
+        btn.addEventListener('click', closeModal);
+      });
+
+      // Backdrop click closes
+      document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+        backdrop.addEventListener('click', (e) => {
+          if (e.target === backdrop) {
+            closeModal();
+          }
+        });
+      });
+
+      // Escape key closes
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeModal();
+        }
+      });
+
+      // Quick lore instructions button
+      document.getElementById('quick-lore-btn').addEventListener('click', () => {
+        openModal('modal-help');
+      });
+
+      // Tone generator buttons inside Lullaby Lab
+      document.querySelectorAll('.tone-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const noteFreq = parseFloat(btn.getAttribute('data-note')) || 440;
+          playCelestialChime(noteFreq);
+        });
+      });
+
+      // Lantern color swatch buttons inside Nightlight Collection
+      document.querySelectorAll('.lantern-color-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          playMechanicalClack();
+          const name = btn.getAttribute('data-name');
+          document.getElementById('lum-label').textContent = name;
+        });
+      });
+
+    });
+  </script>
+
+
+
+
+</body></html>

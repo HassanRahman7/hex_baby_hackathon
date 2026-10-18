@@ -1,0 +1,17 @@
+# Dependencies & build output
+node_modules/
+dist/
+*.local
+
+# Logs
+npm-debug.log*
+*.log
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Secrets (Stitch API key lives here)
+.secrets/

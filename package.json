@@ -1,0 +1,24 @@
+{
+  "name": "interactive-nightstand",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "The Interactive Nightstand · Pip & haX.baby — Track 1, Concept C",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "canvas-confetti": "^1.9.3",
+    "framer-motion": "^12.23.12",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.13",
+    "@vitejs/plugin-react": "^5.0.2",
+    "tailwindcss": "^4.1.13",
+    "vite": "^7.1.7"
+  }
+}

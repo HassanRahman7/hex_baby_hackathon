@@ -1,0 +1,247 @@
+@import 'tailwindcss';
+
+/* Class-based dark mode: the Day/Night pull-cord toggles `.dark` on <html> */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ------------------------------------------------------------------ */
+/* haX.baby design tokens (design.md §1)                               */
+/* ------------------------------------------------------------------ */
+@theme {
+  --color-day: #fff8f1;
+  --color-night: #1a1014;
+  --color-wood: #5c4033;
+  --color-berry: #a34063;
+  --color-sun: #ffd166;
+  --color-blush: #ff7597;
+  --color-softcream: #fff2df;
+
+  --font-fredoka: 'Fredoka', 'Comic Neue', cursive, sans-serif;
+  --font-mono: 'Space Mono', ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, monospace;
+
+  /* Harsh, offset 90s drop shadows */
+  --shadow-retro: 6px 6px 0px #a34063;
+  --shadow-retro-lg: 8px 8px 0px #a34063;
+  --shadow-retro-sm: 3px 3px 0px #a34063;
+
+  /* Night-mode glows (lantern + Pip's skull eyes) */
+  --shadow-glow-berry: 0 0 24px 6px rgba(163, 64, 99, 0.75);
+  --shadow-glow-gold: 0 0 25px 8px rgba(255, 209, 102, 0.65);
+  --drop-shadow-glow-berry: 0 0 24px 6px rgba(163, 64, 99, 0.75);
+  --drop-shadow-glow-gold: 0 0 25px 8px rgba(255, 209, 102, 0.65);
+}
+
+/* ------------------------------------------------------------------ */
+/* Global reset + the 100dvh zero-scroll constraint (PRD §3.1)         */
+/* ------------------------------------------------------------------ */
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100dvh;
+  overflow: hidden; /* zero page scroll — the whole concept depends on it */
+  overscroll-behavior: none;
+  user-select: none;
+  font-family: var(--font-mono);
+  background-color: #fff8f1;
+  color: #5c4033;
+  transition-property: background-color, color;
+  transition-duration: 700ms;
+}
+
+html.dark body {
+  background-color: #1a1014;
+  color: #fff2df;
+}
+
+/* Hide the native cursor only once the custom sparkle cursor is alive */
+@media (pointer: fine) {
+  body.cursor-active,
+  body.cursor-active * {
+    cursor: none !important;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Custom sparkle cursor (design.md §4)                                */
+/* ------------------------------------------------------------------ */
+#cursor-dot {
+  pointer-events: none;
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: #a34063;
+  transform: translate(-50%, -50%);
+  transition:
+    width 0.18s ease,
+    height 0.18s ease,
+    border-radius 0.18s ease,
+    background-color 0.18s ease,
+    opacity 0.2s ease;
+  z-index: 9999;
+  box-shadow: 0 0 8px rgba(163, 64, 99, 0.6);
+  opacity: 0;
+}
+#cursor-dot.cursor-live {
+  opacity: 1;
+}
+#cursor-dot.cursor-hover {
+  width: 28px;
+  height: 28px;
+  background-color: #ffd166;
+  border: 3px solid #a34063;
+  clip-path: polygon(
+    50% 0%,
+    61% 35%,
+    98% 35%,
+    68% 57%,
+    79% 91%,
+    50% 70%,
+    21% 91%,
+    32% 57%,
+    2% 35%,
+    39% 35%
+  );
+  border-radius: 0;
+}
+@media (pointer: coarse) {
+  #cursor-dot {
+    display: none !important;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Keyframe animations                                                 */
+/* ------------------------------------------------------------------ */
+@keyframes pipFloat {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-14px) rotate(1.5deg);
+  }
+}
+.anim-pip-float {
+  animation: pipFloat 3.8s ease-in-out infinite;
+}
+
+@keyframes rotateWiggle {
+  0% {
+    transform: rotate(0deg) scale(1.04);
+  }
+  25% {
+    transform: rotate(-8deg) scale(1.06);
+  }
+  75% {
+    transform: rotate(8deg) scale(1.06);
+  }
+  100% {
+    transform: rotate(0deg) scale(1.04);
+  }
+}
+.group:hover .anim-wiggle-on-hover,
+.anim-wiggle-active {
+  animation: rotateWiggle 0.45s ease-in-out infinite;
+}
+
+@keyframes gentleSway {
+  0%,
+  100% {
+    transform: rotate(-3deg);
+    transform-origin: top center;
+  }
+  50% {
+    transform: rotate(3deg);
+    transform-origin: top center;
+  }
+}
+.anim-sway {
+  animation: gentleSway 5s ease-in-out infinite;
+}
+
+@keyframes starPulse {
+  0%,
+  100% {
+    opacity: 0.75;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+.anim-pulse-star {
+  animation: starPulse 2.8s ease-in-out infinite;
+}
+
+/* Transform-only twinkle: used by interactive stars so their contrast
+   never dips below WCAG thresholds mid-animation. */
+@keyframes starTwinkle {
+  0%,
+  100% {
+    transform: scale(0.9);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
+.anim-twinkle {
+  animation: starTwinkle 2.8s ease-in-out infinite;
+}
+
+/* Early-web dithering / retro dotted pattern */
+.retro-grid-bg {
+  background-image: radial-gradient(#a34063 1.2px, transparent 1.2px);
+  background-size: 20px 20px;
+}
+html.dark .retro-grid-bg {
+  background-image: radial-gradient(#ffd166 1.1px, transparent 1.1px);
+  background-size: 20px 20px;
+}
+
+/* Pull cord drop animation */
+.pull-chain {
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.pull-chain:active {
+  transform: translateY(18px);
+}
+
+/* ------------------------------------------------------------------ */
+/* Safety valves: never allow the desk to escape the viewport          */
+/* ------------------------------------------------------------------ */
+
+/* Short desktop viewports: scale the whole object arrangement down. */
+@media (min-width: 768px) and (max-height: 760px) {
+  .room-objects {
+    transform: scale(0.8);
+    transform-origin: 50% 78%;
+  }
+}
+
+/* Narrow landscape phones: "Responsive Chaos Mode" flips the 2x2
+   scrapbook into a single row of four polaroids instead of clipping. */
+@media (max-width: 767px) and (max-height: 560px) {
+  .scrapbook-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+  .scrapbook-grid .polaroid-media {
+    max-height: 8vh;
+  }
+}
